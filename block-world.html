@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ブロックワールド</title>
+    <style>
+      :root {
+        --sky: #8fd3ff;
+        --ground: #6fb65f;
+        --soil: #8b5a35;
+        --stone: #8a949d;
+        --wood: #9b6238;
+        --leaf: #3f9f4f;
+        --water: #3b82f6;
+        --sand: #e9d28f;
+        --panel: #17212d;
+        --panel-2: #223044;
+        --text: #f8fafc;
+        --muted: #a8b3c2;
+        --line: #344255;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background: #0f1720;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 22px 0;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(300px, 900px) 280px;
+        gap: 16px;
+        align-items: start;
+      }
+
+      .game,
+      .side {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+      }
+
+      .game {
+        overflow: hidden;
+      }
+
+      h1 {
+        margin: 0 0 16px;
+        font-size: clamp(1.7rem, 5vw, 2.8rem);
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: var(--sky);
+        image-rendering: pixelated;
+      }
+
+      .hud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .tool {
+        min-width: 92px;
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        background: var(--panel-2);
+        text-align: center;
+        font-weight: 800;
+      }
+
+      .tool.active {
+        color: #06101a;
+        background: #facc15;
+        border-color: #facc15;
+      }
+
+      .survival {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        background: #111b26;
+      }
+
+      .meter {
+        padding: 10px;
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .meter span {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 900;
+      }
+
+      .bar {
+        height: 10px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 999px;
+      }
+
+      .fill {
+        width: 100%;
+        height: 100%;
+        background: #22c55e;
+      }
+
+      .fill.hunger {
+        background: #f97316;
+      }
+
+      .value {
+        margin-top: 6px;
+        color: var(--text);
+        font-weight: 900;
+      }
+
+      .side {
+        padding: 16px;
+      }
+
+      .side h2 {
+        margin: 0 0 10px;
+        font-size: 1.05rem;
+        letter-spacing: 0;
+      }
+
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .inventory {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .item {
+        padding: 8px;
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-weight: 800;
+      }
+
+      .block-btn {
+        min-height: 54px;
+        padding: 8px;
+        border: 2px solid var(--line);
+        border-radius: 8px;
+        color: var(--text);
+        background: var(--panel-2);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      .block-btn.active {
+        border-color: #facc15;
+      }
+
+      .swatch {
+        display: block;
+        width: 100%;
+        height: 16px;
+        margin-bottom: 6px;
+        border-radius: 4px;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .action {
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        color: #06101a;
+        background: #38bdf8;
+        cursor: pointer;
+        font-weight: 900;
+      }
+
+      .action.secondary {
+        color: var(--text);
+        background: #334155;
+      }
+
+      .controls {
+        margin: 0;
+        padding: 14px 14px 14px 30px;
+        color: var(--muted);
+        line-height: 1.8;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .message {
+        min-height: 28px;
+        margin-top: 12px;
+        color: #facc15;
+        font-weight: 800;
+      }
+
+      @media (max-width: 880px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .palette {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .survival {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 560px) {
+        .palette {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>ブロックワールド</h1>
+      <div class="layout">
+        <section class="game" aria-label="ブロックワールド">
+          <canvas id="world" width="900" height="620"></canvas>
+          <div class="hud" id="hud">
+            <div class="tool active" data-tool="place">置く</div>
+            <div class="tool" data-tool="break">壊す</div>
+            <div class="tool" id="selected">土</div>
+          </div>
+          <div class="survival" aria-live="polite">
+            <div class="meter">
+              <span>HEALTH</span>
+              <div class="bar"><div class="fill" id="healthBar"></div></div>
+              <div class="value" id="healthText">100</div>
+            </div>
+            <div class="meter">
+              <span>HUNGER</span>
+              <div class="bar"><div class="fill hunger" id="hungerBar"></div></div>
+              <div class="value" id="hungerText">100</div>
+            </div>
+            <div class="meter">
+              <span>DAY</span>
+              <div class="value" id="dayText">1</div>
+            </div>
+            <div class="meter">
+              <span>TIME</span>
+              <div class="value" id="timeText">朝</div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side">
+          <h2>ブロック</h2>
+          <div class="palette" id="palette"></div>
+
+          <h2>素材</h2>
+          <div class="inventory" id="inventory"></div>
+
+          <div class="actions">
+            <button class="action" id="eat">食べる</button>
+            <button class="action" id="save">保存</button>
+            <button class="action secondary" id="reset">リセット</button>
+          </div>
+
+          <ul class="controls">
+            <li>クリック: ブロックを置く / 壊す</li>
+            <li>右クリック: 壊す</li>
+            <li>1-7: ブロック切替</li>
+            <li>B: 置く / 壊す切替</li>
+            <li>E: 食べる</li>
+          </ul>
+          <div class="message" id="message">ブロックを選んで世界を作れます。</div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const canvas = document.querySelector("#world");
+      const ctx = canvas.getContext("2d");
+      const paletteEl = document.querySelector("#palette");
+      const hudEl = document.querySelector("#hud");
+      const selectedEl = document.querySelector("#selected");
+      const inventoryEl = document.querySelector("#inventory");
+      const healthBarEl = document.querySelector("#healthBar");
+      const hungerBarEl = document.querySelector("#hungerBar");
+      const healthTextEl = document.querySelector("#healthText");
+      const hungerTextEl = document.querySelector("#hungerText");
+      const dayTextEl = document.querySelector("#dayText");
+      const timeTextEl = document.querySelector("#timeText");
+      const eatEl = document.querySelector("#eat");
+      const saveEl = document.querySelector("#save");
+      const resetEl = document.querySelector("#reset");
+      const messageEl = document.querySelector("#message");
+
+      const COLS = 25;
+      const ROWS = 16;
+      const TILE_W = 34;
+      const TILE_H = 18;
+      const CUBE_H = 28;
+      const ORIGIN_X = 450;
+      const ORIGIN_Y = 112;
+      const EMPTY = 0;
+
+      const blocks = [
+        { id: 1, key: "soil", name: "土", color: "#8b5a35" },
+        { id: 2, key: "grass", name: "草", color: "#56a64b" },
+        { id: 3, key: "stone", name: "石", color: "#8a949d" },
+        { id: 4, key: "wood", name: "木", color: "#9b6238" },
+        { id: 5, key: "leaf", name: "葉", color: "#3f9f4f" },
+        { id: 6, key: "sand", name: "砂", color: "#e9d28f" },
+        { id: 7, key: "water", name: "水", color: "#3b82f6" }
+      ];
+
+      let world = loadWorld();
+      let selectedBlock = blocks[0];
+      let tool = "place";
+      let hover = null;
+      let inventory = loadInventory();
+      let survival = loadSurvival();
+      let survivalTimer = null;
+
+      function createWorld() {
+        const map = Array.from({ length: ROWS }, () => Array(COLS).fill(EMPTY));
+        for (let y = 10; y < ROWS; y += 1) {
+          for (let x = 0; x < COLS; x += 1) {
+            map[y][x] = y === 10 ? 2 : 1;
+          }
+        }
+
+        for (let x = 2; x < 7; x += 1) map[12][x] = 6;
+        for (let x = 3; x < 6; x += 1) map[11][x] = 6;
+        for (let x = 17; x < 23; x += 1) map[11][x] = 7;
+
+        addTree(map, 8, 10);
+        addTree(map, 19, 10);
+        map[9][13] = 3;
+        map[9][14] = 3;
+        map[8][14] = 3;
+        return map;
+      }
+
+      function addTree(map, x, groundY) {
+        map[groundY - 1][x] = 4;
+        map[groundY - 2][x] = 4;
+        map[groundY - 3][x] = 4;
+        for (let y = groundY - 5; y <= groundY - 3; y += 1) {
+          for (let dx = -1; dx <= 1; dx += 1) {
+            map[y][x + dx] = 5;
+          }
+        }
+        map[groundY - 4][x - 2] = 5;
+        map[groundY - 4][x + 2] = 5;
+      }
+
+      function loadWorld() {
+        const saved = localStorage.getItem("blockWorldMap");
+        if (!saved) return createWorld();
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length === ROWS) return parsed;
+        } catch {
+          return createWorld();
+        }
+        return createWorld();
+      }
+
+      function defaultInventory() {
+        return {
+          1: 20,
+          2: 8,
+          3: 8,
+          4: 6,
+          5: 10,
+          6: 8,
+          7: 6,
+          food: 3
+        };
+      }
+
+      function loadInventory() {
+        const saved = localStorage.getItem("blockWorldInventory");
+        if (!saved) return defaultInventory();
+        try {
+          return { ...defaultInventory(), ...JSON.parse(saved) };
+        } catch {
+          return defaultInventory();
+        }
+      }
+
+      function defaultSurvival() {
+        return {
+          health: 100,
+          hunger: 100,
+          day: 1,
+          time: 0,
+          alive: true
+        };
+      }
+
+      function loadSurvival() {
+        const saved = localStorage.getItem("blockWorldSurvival");
+        if (!saved) return defaultSurvival();
+        try {
+          return { ...defaultSurvival(), ...JSON.parse(saved), alive: true };
+        } catch {
+          return defaultSurvival();
+        }
+      }
+
+      function blockById(id) {
+        return blocks.find((block) => block.id === id);
+      }
+
+      function drawSky() {
+        const night = survival.time >= 70;
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, night ? "#172554" : "#8fd3ff");
+        gradient.addColorStop(0.72, night ? "#243b66" : "#d8f4ff");
+        gradient.addColorStop(1, night ? "#26384d" : "#c8ecb0");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = night ? "rgba(255, 255, 255, 0.18)" : "rgba(255, 255, 255, 0.92)";
+        drawCloud(90, 82);
+        drawCloud(560, 64);
+
+        ctx.fillStyle = night ? "#f8fafc" : "#facc15";
+        ctx.beginPath();
+        ctx.arc(704, 70, night ? 18 : 26, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawCloud(x, y) {
+        ctx.beginPath();
+        ctx.arc(x, y, 18, 0, Math.PI * 2);
+        ctx.arc(x + 22, y - 12, 22, 0, Math.PI * 2);
+        ctx.arc(x + 48, y, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function shade(hex, amount) {
+        const value = Number.parseInt(hex.slice(1), 16);
+        const r = Math.max(0, Math.min(255, (value >> 16) + amount));
+        const g = Math.max(0, Math.min(255, ((value >> 8) & 255) + amount));
+        const b = Math.max(0, Math.min(255, (value & 255) + amount));
+        return `rgb(${r}, ${g}, ${b})`;
+      }
+
+      function isoPoint(x, y) {
+        return {
+          x: ORIGIN_X + (x - y) * (TILE_W / 2),
+          y: ORIGIN_Y + (x + y) * (TILE_H / 2)
+        };
+      }
+
+      function drawFace(points, color) {
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i += 1) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(15, 23, 32, 0.32)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      function drawBlock(x, y, id) {
+        const block = blockById(id);
+        if (!block) return;
+        const p = isoPoint(x, y);
+        const top = [
+          { x: p.x, y: p.y - CUBE_H },
+          { x: p.x + TILE_W / 2, y: p.y - CUBE_H + TILE_H / 2 },
+          { x: p.x, y: p.y - CUBE_H + TILE_H },
+          { x: p.x - TILE_W / 2, y: p.y - CUBE_H + TILE_H / 2 }
+        ];
+        const left = [
+          top[3],
+          top[2],
+          { x: p.x, y: p.y + TILE_H },
+          { x: p.x - TILE_W / 2, y: p.y + TILE_H / 2 }
+        ];
+        const right = [
+          top[2],
+          top[1],
+          { x: p.x + TILE_W / 2, y: p.y + TILE_H / 2 },
+          { x: p.x, y: p.y + TILE_H }
+        ];
+
+        drawFace(left, shade(block.color, -34));
+        drawFace(right, shade(block.color, -18));
+        drawFace(top, block.key === "grass" ? "#56a64b" : shade(block.color, 18));
+
+        if (block.key === "water") {
+          drawFace(top, "rgba(96, 165, 250, 0.68)");
+        }
+      }
+
+      function drawGrid() {
+        ctx.strokeStyle = "rgba(15, 23, 32, 0.18)";
+        ctx.lineWidth = 1;
+        for (let y = 0; y < ROWS; y += 1) {
+          for (let x = 0; x < COLS; x += 1) {
+            if (world[y][x] !== EMPTY) continue;
+            const p = isoPoint(x, y);
+            drawFace([
+              { x: p.x, y: p.y },
+              { x: p.x + TILE_W / 2, y: p.y + TILE_H / 2 },
+              { x: p.x, y: p.y + TILE_H },
+              { x: p.x - TILE_W / 2, y: p.y + TILE_H / 2 }
+            ], "rgba(255, 255, 255, 0.08)");
+          }
+        }
+      }
+
+      function drawHover() {
+        if (!hover) return;
+        const p = isoPoint(hover.x, hover.y);
+        const topY = world[hover.y][hover.x] === EMPTY ? p.y : p.y - CUBE_H;
+        const points = [
+          { x: p.x, y: topY },
+          { x: p.x + TILE_W / 2, y: topY + TILE_H / 2 },
+          { x: p.x, y: topY + TILE_H },
+          { x: p.x - TILE_W / 2, y: topY + TILE_H / 2 }
+        ];
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+        ctx.closePath();
+        ctx.strokeStyle = tool === "break" ? "#ef4444" : "#facc15";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+
+      function draw() {
+        drawSky();
+        drawGrid();
+        for (let y = 0; y < ROWS; y += 1) {
+          for (let x = 0; x < COLS; x += 1) {
+            const id = world[y][x];
+            if (id !== EMPTY) drawBlock(x, y, id);
+          }
+        }
+        drawHover();
+      }
+
+      function renderPalette() {
+        paletteEl.innerHTML = "";
+        blocks.forEach((block, index) => {
+          const button = document.createElement("button");
+          button.className = `block-btn${block.id === selectedBlock.id ? " active" : ""}`;
+          button.type = "button";
+          button.innerHTML = `<span class="swatch" style="background:${block.color}"></span>${index + 1}. ${block.name}`;
+          button.addEventListener("click", () => selectBlock(block.id));
+          paletteEl.appendChild(button);
+        });
+      }
+
+      function renderInventory() {
+        inventoryEl.innerHTML = "";
+        blocks.forEach((block) => {
+          const item = document.createElement("div");
+          item.className = "item";
+          item.textContent = `${block.name}: ${inventory[block.id] || 0}`;
+          inventoryEl.appendChild(item);
+        });
+        const food = document.createElement("div");
+        food.className = "item";
+        food.textContent = `食料: ${inventory.food || 0}`;
+        inventoryEl.appendChild(food);
+      }
+
+      function renderSurvival() {
+        const health = Math.max(0, Math.min(100, survival.health));
+        const hunger = Math.max(0, Math.min(100, survival.hunger));
+        healthBarEl.style.width = `${health}%`;
+        hungerBarEl.style.width = `${hunger}%`;
+        healthTextEl.textContent = Math.round(health);
+        hungerTextEl.textContent = Math.round(hunger);
+        dayTextEl.textContent = survival.day;
+        timeTextEl.textContent = survival.time >= 70 ? "夜" : survival.time >= 38 ? "昼" : "朝";
+      }
+
+      function updateHud() {
+        selectedEl.textContent = selectedBlock.name;
+        document.querySelectorAll(".tool").forEach((item) => {
+          item.classList.toggle("active", item.dataset.tool === tool);
+        });
+        renderPalette();
+        renderInventory();
+        renderSurvival();
+      }
+
+      function selectBlock(id) {
+        selectedBlock = blockById(id) || selectedBlock;
+        tool = "place";
+        messageEl.textContent = `${selectedBlock.name}を選択しました。`;
+        updateHud();
+      }
+
+      function setTool(nextTool) {
+        tool = nextTool;
+        messageEl.textContent = tool === "place" ? "置くモードです。" : "壊すモードです。";
+        updateHud();
+        draw();
+      }
+
+      function cellFromEvent(event) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (event.clientX - rect.left) * scaleX;
+        const my = (event.clientY - rect.top) * scaleY;
+        const localX = (mx - ORIGIN_X) / (TILE_W / 2);
+        const localY = (my - ORIGIN_Y) / (TILE_H / 2);
+        const candidates = [
+          { x: Math.floor((localY + localX) / 2), y: Math.floor((localY - localX) / 2) },
+          { x: Math.floor((localY + localX + 1) / 2), y: Math.floor((localY - localX) / 2) },
+          { x: Math.floor((localY + localX) / 2), y: Math.floor((localY - localX + 1) / 2) }
+        ];
+        return candidates.find((cell) => cell.x >= 0 && cell.x < COLS && cell.y >= 0 && cell.y < ROWS) || null;
+      }
+
+      function editCell(cell, mode) {
+        if (!cell) return;
+        if (!survival.alive) {
+          messageEl.textContent = "体力がありません。リセットしてください。";
+          return;
+        }
+        if (mode === "break") {
+          const currentId = world[cell.y][cell.x];
+          if (currentId === EMPTY) return;
+          inventory[currentId] = (inventory[currentId] || 0) + 1;
+          if (currentId === 5 && Math.random() < 0.35) {
+            inventory.food = (inventory.food || 0) + 1;
+            messageEl.textContent = "葉から食料を見つけました。";
+          } else {
+            messageEl.textContent = "ブロックを壊して素材を手に入れました。";
+          }
+          world[cell.y][cell.x] = EMPTY;
+          drainHunger(1);
+        } else {
+          if ((inventory[selectedBlock.id] || 0) <= 0) {
+            messageEl.textContent = `${selectedBlock.name}の素材が足りません。`;
+            return;
+          }
+          world[cell.y][cell.x] = selectedBlock.id;
+          inventory[selectedBlock.id] -= 1;
+          messageEl.textContent = `${selectedBlock.name}を置きました。`;
+          drainHunger(0.5);
+        }
+        updateHud();
+        draw();
+      }
+
+      function drainHunger(amount) {
+        survival.hunger = Math.max(0, survival.hunger - amount);
+        if (survival.hunger === 0) {
+          survival.health = Math.max(0, survival.health - amount * 2);
+          if (survival.health === 0) survival.alive = false;
+        }
+      }
+
+      function eatFood() {
+        if ((inventory.food || 0) <= 0) {
+          messageEl.textContent = "食料がありません。葉を壊すと見つかることがあります。";
+          return;
+        }
+        inventory.food -= 1;
+        survival.hunger = Math.min(100, survival.hunger + 28);
+        if (survival.hunger > 70) {
+          survival.health = Math.min(100, survival.health + 8);
+        }
+        messageEl.textContent = "食料を食べました。";
+        updateHud();
+      }
+
+      function survivalTick() {
+        if (!survival.alive) return;
+        survival.time += 4;
+        if (survival.time >= 100) {
+          survival.time = 0;
+          survival.day += 1;
+        }
+        drainHunger(survival.time >= 70 ? 2 : 1);
+        if (!survival.alive) {
+          messageEl.textContent = "空腹で倒れました。リセットで再挑戦できます。";
+        }
+        updateHud();
+        draw();
+      }
+
+      canvas.addEventListener("mousemove", (event) => {
+        hover = cellFromEvent(event);
+        draw();
+      });
+
+      canvas.addEventListener("mouseleave", () => {
+        hover = null;
+        draw();
+      });
+
+      canvas.addEventListener("click", (event) => {
+        editCell(cellFromEvent(event), tool);
+      });
+
+      canvas.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        editCell(cellFromEvent(event), "break");
+      });
+
+      hudEl.addEventListener("click", (event) => {
+        const target = event.target.closest("[data-tool]");
+        if (target) setTool(target.dataset.tool);
+      });
+
+      saveEl.addEventListener("click", () => {
+        localStorage.setItem("blockWorldMap", JSON.stringify(world));
+        localStorage.setItem("blockWorldInventory", JSON.stringify(inventory));
+        localStorage.setItem("blockWorldSurvival", JSON.stringify(survival));
+        messageEl.textContent = "現在の世界とサバイバル状態を保存しました。";
+      });
+
+      resetEl.addEventListener("click", () => {
+        world = createWorld();
+        inventory = defaultInventory();
+        survival = defaultSurvival();
+        localStorage.removeItem("blockWorldMap");
+        localStorage.removeItem("blockWorldInventory");
+        localStorage.removeItem("blockWorldSurvival");
+        messageEl.textContent = "世界をリセットしました。";
+        updateHud();
+        draw();
+      });
+
+      eatEl.addEventListener("click", eatFood);
+
+      document.addEventListener("keydown", (event) => {
+        const number = Number(event.key);
+        if (number >= 1 && number <= blocks.length) {
+          selectBlock(blocks[number - 1].id);
+        }
+        if (event.key.toLowerCase() === "b") {
+          setTool(tool === "place" ? "break" : "place");
+        }
+        if (event.key.toLowerCase() === "e") {
+          eatFood();
+        }
+      });
+
+      updateHud();
+      draw();
+      survivalTimer = window.setInterval(survivalTick, 3500);
+    </script>
+  </body>
+</html>
