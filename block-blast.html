@@ -227,6 +227,159 @@
         color: var(--bad);
       }
 
+      .casino {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+
+      .money {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .money span,
+      .slot-title span,
+      .timing-title span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .money strong {
+        font-size: 1.55rem;
+        line-height: 1;
+      }
+
+      .slot,
+      .timing {
+        padding: 12px;
+        background: #fbfdff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .slot-title,
+      .timing-title {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .slot-title strong,
+      .timing-title strong {
+        font-size: 1rem;
+      }
+
+      .reels {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .reel {
+        display: grid;
+        place-items: center;
+        min-height: 66px;
+        padding: 10px 6px;
+        color: #111827;
+        background: #ffffff;
+        border: 2px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: clamp(1.15rem, 4vw, 1.55rem);
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .slot button,
+      .timing button {
+        width: 100%;
+        min-height: 44px;
+        border: 0;
+        border-radius: 8px;
+        color: #ffffff;
+        background: #111827;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .slot button:disabled,
+      .timing button:disabled {
+        opacity: 0.52;
+        cursor: default;
+      }
+
+      .payouts {
+        margin: 10px 0 0;
+        padding-left: 20px;
+        color: var(--muted);
+        font-size: 0.88rem;
+        line-height: 1.7;
+      }
+
+      .casino-message {
+        min-height: 24px;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .casino-message.good {
+        color: var(--good);
+      }
+
+      .casino-message.bad {
+        color: var(--bad);
+      }
+
+      .timing {
+        display: none;
+      }
+
+      .timing.active {
+        display: block;
+      }
+
+      .timing-track {
+        position: relative;
+        height: 34px;
+        margin: 10px 0;
+        overflow: hidden;
+        background: #e2e8f0;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+
+      .timing-green {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 42%;
+        width: 16%;
+        background: rgba(22, 163, 74, 0.82);
+      }
+
+      .timing-marker {
+        position: absolute;
+        top: -2px;
+        bottom: -2px;
+        left: 0;
+        width: 5px;
+        background: #111827;
+        border-radius: 4px;
+      }
+
       @media (max-width: 820px) {
         .shell {
           grid-template-columns: 1fr;
@@ -309,6 +462,49 @@
           </div>
 
           <div class="message" id="message">矢印キーで動かして、Enterキーで置いてください。</div>
+
+          <section class="casino" aria-label="ゲーム内マネーとスロット">
+            <div class="money">
+              <div>
+                <span>MONEY</span>
+                <strong id="money">¥10,000</strong>
+              </div>
+              <span>1回 ¥100</span>
+            </div>
+
+            <div class="slot">
+              <div class="slot-title">
+                <strong>スロット</strong>
+                <span>3リール</span>
+              </div>
+              <div class="reels" aria-live="polite">
+                <div class="reel" id="reel1">7</div>
+                <div class="reel" id="reel2">BAR</div>
+                <div class="reel" id="reel3">ベル</div>
+              </div>
+              <button id="spinSlot">回す</button>
+              <ul class="payouts">
+                <li>7が3つ: ¥5,000</li>
+                <li>BARが3つ: ¥2,500</li>
+                <li>ベルが3つ: ¥1,200</li>
+                <li>チェリーが3つ: ¥600 / チェリー2つ: ¥200</li>
+              </ul>
+            </div>
+
+            <div class="timing" id="timingGame">
+              <div class="timing-title">
+                <strong>救済タイミング</strong>
+                <span>成功で ¥1,000</span>
+              </div>
+              <div class="timing-track" id="timingTrack">
+                <div class="timing-green"></div>
+                <div class="timing-marker" id="timingMarker"></div>
+              </div>
+              <button id="stopTiming">ストップ</button>
+            </div>
+
+            <div class="casino-message" id="casinoMessage">所持金でスロットを回せます。</div>
+          </section>
         </aside>
       </div>
     </main>
@@ -344,6 +540,17 @@
       const messageEl = document.querySelector("#message");
       const newGameBtn = document.querySelector("#newGame");
       const hintBtn = document.querySelector("#hint");
+      const moneyEl = document.querySelector("#money");
+      const casinoMessageEl = document.querySelector("#casinoMessage");
+      const spinSlotBtn = document.querySelector("#spinSlot");
+      const timingGameEl = document.querySelector("#timingGame");
+      const timingMarkerEl = document.querySelector("#timingMarker");
+      const stopTimingBtn = document.querySelector("#stopTiming");
+      const reelEls = [
+        document.querySelector("#reel1"),
+        document.querySelector("#reel2"),
+        document.querySelector("#reel3")
+      ];
 
       let board = [];
       let pieces = [];
@@ -355,6 +562,21 @@
       let gameOver = false;
       let cursorX = 0;
       let cursorY = 0;
+      let money = Number(localStorage.getItem("blockBlastMoney") || 10000);
+      let timingActive = false;
+      let timingPosition = 0;
+      let timingDirection = 1;
+      let timingFrame = null;
+      const spinCost = 100;
+      const timingReward = 1000;
+      const slotSymbols = [
+        { label: "7", weight: 2, payout: 5000 },
+        { label: "BAR", weight: 4, payout: 2500 },
+        { label: "ベル", weight: 8, payout: 1200 },
+        { label: "チェリー", weight: 12, payout: 600 },
+        { label: "プラム", weight: 16, payout: 350 },
+        { label: "レモン", weight: 20, payout: 250 }
+      ];
 
       function emptyBoard() {
         return Array.from({ length: size }, () => Array(size).fill(null));
@@ -372,6 +594,125 @@
       function setMessage(text, tone = "") {
         messageEl.textContent = text;
         messageEl.className = `message ${tone}`;
+      }
+
+      function setCasinoMessage(text, tone = "") {
+        casinoMessageEl.textContent = text;
+        casinoMessageEl.className = `casino-message ${tone}`;
+      }
+
+      function yen(value) {
+        return `¥${value.toLocaleString("ja-JP")}`;
+      }
+
+      function saveMoney() {
+        localStorage.setItem("blockBlastMoney", String(money));
+      }
+
+      function drawMoney() {
+        moneyEl.textContent = yen(money);
+        spinSlotBtn.disabled = money < spinCost || timingActive;
+        if (money < spinCost && !timingActive) {
+          timingGameEl.classList.add("active");
+        }
+      }
+
+      function weightedSymbol() {
+        const total = slotSymbols.reduce((sum, symbol) => sum + symbol.weight, 0);
+        let pick = Math.random() * total;
+        for (const symbol of slotSymbols) {
+          pick -= symbol.weight;
+          if (pick <= 0) return symbol;
+        }
+        return slotSymbols[slotSymbols.length - 1];
+      }
+
+      function calculateSlotPayout(result) {
+        const labels = result.map((symbol) => symbol.label);
+        const first = labels[0];
+        if (labels.every((label) => label === first)) {
+          return result[0].payout;
+        }
+
+        const cherryCount = labels.filter((label) => label === "チェリー").length;
+        if (cherryCount === 2) return 200;
+        if (cherryCount === 1) return 100;
+
+        const barSevenCount = labels.filter((label) => label === "7" || label === "BAR").length;
+        if (barSevenCount === 3) return 300;
+
+        return 0;
+      }
+
+      function spinSlot() {
+        if (timingActive) return;
+        if (money < spinCost) {
+          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+          return;
+        }
+
+        money -= spinCost;
+        const result = [weightedSymbol(), weightedSymbol(), weightedSymbol()];
+        const payout = calculateSlotPayout(result);
+        money += payout;
+        saveMoney();
+        result.forEach((symbol, index) => {
+          reelEls[index].textContent = symbol.label;
+        });
+
+        if (payout > 0) {
+          setCasinoMessage(`${result.map((symbol) => symbol.label).join(" / ")} で ${yen(payout)} 獲得しました。`, "good");
+        } else {
+          setCasinoMessage(`${result.map((symbol) => symbol.label).join(" / ")}。はずれです。`, "bad");
+        }
+
+        if (money < spinCost) {
+          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+        } else {
+          drawMoney();
+        }
+      }
+
+      function startTimingGame(text) {
+        timingActive = true;
+        timingPosition = 0;
+        timingDirection = 1;
+        timingGameEl.classList.add("active");
+        setCasinoMessage(text, "bad");
+        drawMoney();
+        runTimingGame();
+      }
+
+      function runTimingGame() {
+        if (!timingActive) return;
+        timingPosition += timingDirection * 1.8;
+        if (timingPosition >= 100) {
+          timingPosition = 100;
+          timingDirection = -1;
+        } else if (timingPosition <= 0) {
+          timingPosition = 0;
+          timingDirection = 1;
+        }
+        timingMarkerEl.style.left = `${timingPosition}%`;
+        timingFrame = requestAnimationFrame(runTimingGame);
+      }
+
+      function stopTimingGame() {
+        if (!timingActive) return;
+        cancelAnimationFrame(timingFrame);
+        timingActive = false;
+
+        if (timingPosition >= 42 && timingPosition <= 58) {
+          money += timingReward;
+          saveMoney();
+          timingGameEl.classList.remove("active");
+          setCasinoMessage(`成功です。${yen(timingReward)}を獲得しました。`, "good");
+        } else {
+          setCasinoMessage("失敗です。もう一度、緑色の部分で止めてください。", "bad");
+          if (money < spinCost) startTimingGame("もう一度挑戦できます。緑色の部分で止めてください。");
+        }
+
+        drawMoney();
       }
 
       function selectedPiece() {
@@ -611,6 +952,7 @@
         drawBoard(cursorPreview());
         drawPieces();
         drawStats();
+        drawMoney();
       }
 
       function startGame() {
@@ -645,6 +987,7 @@
       });
 
       document.addEventListener("keydown", (event) => {
+        if (event.target.closest("button") && event.key === "Enter") return;
         if (event.key === "ArrowLeft") {
           event.preventDefault();
           moveCursor(-1, 0);
@@ -665,8 +1008,13 @@
 
       newGameBtn.addEventListener("click", startGame);
       hintBtn.addEventListener("click", showHint);
+      spinSlotBtn.addEventListener("click", spinSlot);
+      stopTimingBtn.addEventListener("click", stopTimingGame);
 
       startGame();
+      if (money < spinCost) {
+        startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+      }
     </script>
   </body>
 </html>

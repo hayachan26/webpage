@@ -1,0 +1,889 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>スロットゲーム</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --ink: #1f2937;
+        --muted: #64748b;
+        --panel: #ffffff;
+        --line: #d6e0eb;
+        --good: #16a34a;
+        --bad: #dc2626;
+        --accent: #2563eb;
+        --dark: #111827;
+        --shadow: 0 18px 48px rgba(30, 41, 59, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(135deg, rgba(37, 99, 235, 0.12), transparent 34%),
+          linear-gradient(315deg, rgba(22, 163, 74, 0.12), transparent 30%),
+          var(--bg);
+      }
+
+      button {
+        font: inherit;
+      }
+
+      main {
+        width: min(840px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 24px 0;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: clamp(1.8rem, 5vw, 2.8rem);
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .game {
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .money {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .money span,
+      .panel-title span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .money strong {
+        display: block;
+        margin-top: 4px;
+        font-size: clamp(1.8rem, 6vw, 2.7rem);
+        line-height: 1;
+      }
+
+      .slot,
+      .timing,
+      .upgrade,
+      .payout {
+        padding: 14px;
+        background: #fbfdff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .slot.luxury-1 {
+        border-color: #f59e0b;
+        background: linear-gradient(180deg, #fff7ed, #ffffff);
+      }
+
+      .slot.luxury-2 {
+        border-color: #eab308;
+        background: linear-gradient(135deg, #fff7ed, #fef3c7 48%, #ffffff);
+        box-shadow: 0 14px 34px rgba(202, 138, 4, 0.2);
+      }
+
+      .slot.luxury-3 {
+        border-color: #facc15;
+        background:
+          linear-gradient(135deg, rgba(250, 204, 21, 0.28), transparent 34%),
+          linear-gradient(315deg, rgba(56, 189, 248, 0.18), transparent 30%),
+          #ffffff;
+        box-shadow: 0 18px 46px rgba(202, 138, 4, 0.26);
+      }
+
+      .panel-title {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .panel-title strong {
+        font-size: 1.1rem;
+      }
+
+      .reels {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+
+      .reel {
+        display: grid;
+        place-items: center;
+        min-height: 104px;
+        padding: 12px 8px;
+        color: var(--dark);
+        background: #ffffff;
+        border: 3px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: clamp(1.45rem, 6vw, 2.4rem);
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .reel.spinning {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      }
+
+      .slot.luxury-1 .reel {
+        border-color: #fbbf24;
+      }
+
+      .slot.luxury-2 .reel {
+        border-color: #eab308;
+        background: #fffbeb;
+      }
+
+      .slot.luxury-3 .reel {
+        border-color: #facc15;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(254, 243, 199, 0.95));
+        box-shadow: inset 0 0 0 2px rgba(250, 204, 21, 0.26);
+      }
+
+      .symbol {
+        position: relative;
+        width: 62px;
+        height: 62px;
+      }
+
+      .symbol-jackpot {
+        background: #facc15;
+        clip-path: polygon(50% 0, 62% 34%, 98% 34%, 68% 55%, 80% 92%, 50% 70%, 20% 92%, 32% 55%, 2% 34%, 38% 34%);
+        filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.16));
+      }
+
+      .symbol-bar {
+        display: grid;
+        gap: 7px;
+        align-content: center;
+      }
+
+      .symbol-bar span {
+        display: block;
+        height: 12px;
+        background: #111827;
+        border-radius: 999px;
+      }
+
+      .symbol-bell {
+        width: 64px;
+        height: 58px;
+        border-radius: 32px 32px 18px 18px;
+        background: #f59e0b;
+        box-shadow: inset 0 -9px 0 rgba(0, 0, 0, 0.14);
+      }
+
+      .symbol-bell::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: 24px;
+        width: 16px;
+        height: 12px;
+        background: #b45309;
+        border-radius: 10px 10px 0 0;
+      }
+
+      .symbol-bell::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 25px;
+        width: 14px;
+        height: 14px;
+        background: #92400e;
+        border-radius: 50%;
+      }
+
+      .symbol-cherry::before,
+      .symbol-cherry::after {
+        content: "";
+        position: absolute;
+        bottom: 6px;
+        width: 27px;
+        height: 27px;
+        background: #dc2626;
+        border-radius: 50%;
+        box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.14);
+      }
+
+      .symbol-cherry::before {
+        left: 7px;
+      }
+
+      .symbol-cherry::after {
+        right: 7px;
+      }
+
+      .symbol-cherry span {
+        position: absolute;
+        top: 4px;
+        left: 28px;
+        width: 5px;
+        height: 34px;
+        background: #15803d;
+        border-radius: 999px;
+        transform: rotate(20deg);
+      }
+
+      .symbol-plum {
+        width: 58px;
+        height: 58px;
+        background: #7c3aed;
+        border-radius: 50%;
+        box-shadow: inset -9px -9px 0 rgba(0, 0, 0, 0.14);
+      }
+
+      .symbol-plum::before,
+      .symbol-lemon::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        left: 14px;
+        width: 14px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.52);
+        border-radius: 50%;
+        transform: rotate(-24deg);
+      }
+
+      .symbol-lemon {
+        width: 66px;
+        height: 46px;
+        background: #fde047;
+        border-radius: 65% 35% 65% 35%;
+        transform: rotate(-18deg);
+        box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.1);
+      }
+
+      .symbol-diamond {
+        width: 58px;
+        height: 58px;
+        background: #38bdf8;
+        transform: rotate(45deg);
+        border-radius: 8px;
+        box-shadow: inset -8px -8px 0 rgba(0, 0, 0, 0.14);
+      }
+
+      .symbol-diamond::before {
+        content: "";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 18px;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.45);
+        border-radius: 4px;
+      }
+
+      .symbol-crown {
+        width: 68px;
+        height: 52px;
+        background: #fbbf24;
+        clip-path: polygon(4% 28%, 24% 56%, 38% 12%, 52% 58%, 75% 18%, 96% 56%, 96% 100%, 4% 100%);
+        filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.16));
+      }
+
+      .symbol-heart {
+        width: 58px;
+        height: 52px;
+        background: #f43f5e;
+        transform: rotate(-45deg);
+        border-radius: 10px;
+      }
+
+      .symbol-heart::before,
+      .symbol-heart::after {
+        content: "";
+        position: absolute;
+        width: 58px;
+        height: 58px;
+        background: #f43f5e;
+        border-radius: 50%;
+      }
+
+      .symbol-heart::before {
+        top: -28px;
+        left: 0;
+      }
+
+      .symbol-heart::after {
+        top: 0;
+        left: 28px;
+      }
+
+      .symbol-clover::before,
+      .symbol-clover::after,
+      .symbol-clover span::before,
+      .symbol-clover span::after {
+        content: "";
+        position: absolute;
+        width: 28px;
+        height: 28px;
+        background: #16a34a;
+        border-radius: 50%;
+      }
+
+      .symbol-clover::before {
+        left: 17px;
+        top: 0;
+      }
+
+      .symbol-clover::after {
+        left: 2px;
+        top: 21px;
+      }
+
+      .symbol-clover span::before {
+        right: 2px;
+        top: 21px;
+      }
+
+      .symbol-clover span::after {
+        left: 17px;
+        top: 35px;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .upgrade {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .upgrade span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+
+      .upgrade strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.25rem;
+      }
+
+      .upgrade button {
+        min-width: 150px;
+      }
+
+      button {
+        min-height: 48px;
+        border: 0;
+        border-radius: 8px;
+        color: #ffffff;
+        background: var(--dark);
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        color: var(--ink);
+        background: #e2e8f0;
+      }
+
+      button:disabled {
+        opacity: 0.52;
+        cursor: default;
+      }
+
+      .payout ul {
+        margin: 0;
+        padding-left: 22px;
+        color: var(--muted);
+        line-height: 1.8;
+      }
+
+      .message {
+        min-height: 28px;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .message.good {
+        color: var(--good);
+      }
+
+      .message.bad {
+        color: var(--bad);
+      }
+
+      .timing {
+        display: none;
+      }
+
+      .timing.active {
+        display: block;
+      }
+
+      .timing-track {
+        position: relative;
+        height: 40px;
+        margin: 10px 0 12px;
+        overflow: hidden;
+        background: #e2e8f0;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+      }
+
+      .timing-green {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 42%;
+        width: 16%;
+        background: rgba(22, 163, 74, 0.82);
+      }
+
+      .timing-marker {
+        position: absolute;
+        top: -2px;
+        bottom: -2px;
+        left: 0;
+        width: 5px;
+        background: var(--dark);
+        border-radius: 4px;
+      }
+
+      @media (max-width: 560px) {
+        main {
+          width: min(100% - 16px, 840px);
+          padding: 12px 0;
+        }
+
+        .game {
+          padding: 12px;
+        }
+
+        .reel {
+          min-height: 78px;
+          border-width: 2px;
+        }
+
+        .buttons {
+          grid-template-columns: 1fr;
+        }
+
+        .upgrade {
+          grid-template-columns: 1fr;
+        }
+
+        .symbol {
+          width: 48px;
+          height: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>スロットゲーム</h1>
+      <section class="game" aria-label="スロットゲーム">
+        <div class="money">
+          <div>
+            <span>MONEY</span>
+            <strong id="money">¥10,000</strong>
+          </div>
+          <span>1回 ¥300</span>
+        </div>
+
+        <div class="slot" id="slotMachine">
+          <div class="panel-title">
+            <strong>3リールスロット</strong>
+            <span>ゲーム内マネー</span>
+          </div>
+          <div class="reels" aria-live="polite">
+            <div class="reel" id="reel1"></div>
+            <div class="reel" id="reel2"></div>
+            <div class="reel" id="reel3"></div>
+          </div>
+          <div class="buttons">
+            <button id="spinSlot">回す</button>
+            <button id="stopReel">止める</button>
+            <button class="secondary" id="resetMoney">最初から</button>
+            <button class="secondary" id="startTiming">千円チャレンジ</button>
+          </div>
+        </div>
+
+        <div class="upgrade">
+          <div>
+            <span>UPGRADE</span>
+            <strong id="upgradeLevel">レベル 0</strong>
+            <span id="upgradeCost">次: ¥5,000</span>
+          </div>
+          <button id="upgradeSlot">アップグレード</button>
+        </div>
+
+        <div class="timing" id="timingGame">
+          <div class="panel-title">
+            <strong>救済タイミング</strong>
+            <span>成功で ¥1,000</span>
+          </div>
+          <div class="timing-track">
+            <div class="timing-green"></div>
+            <div class="timing-marker" id="timingMarker"></div>
+          </div>
+          <button id="stopTiming">ストップ</button>
+        </div>
+
+        <div class="payout">
+          <div class="panel-title">
+            <strong>払い戻し</strong>
+            <span>役一覧</span>
+          </div>
+          <ul>
+            <li>星が3つ: ¥7,500</li>
+            <li>王冠が3つ: ¥5,250</li>
+            <li>黒バーが3つ: ¥3,750</li>
+            <li>ダイヤが3つ: ¥2,700</li>
+            <li>ベルが3つ: ¥1,800</li>
+            <li>ハートが3つ: ¥1,350 / クローバーが3つ: ¥1,125</li>
+            <li>チェリーが3つ: ¥900</li>
+            <li>チェリー2つ: ¥300 / チェリー1つ: ¥150</li>
+            <li>星・王冠・黒バーだけで3つ: ¥750</li>
+          </ul>
+        </div>
+
+        <div class="message" id="message">所持金でスロットを回せます。</div>
+      </section>
+    </main>
+
+    <script>
+      const moneyEl = document.querySelector("#money");
+      const messageEl = document.querySelector("#message");
+      const slotMachineEl = document.querySelector("#slotMachine");
+      const spinSlotBtn = document.querySelector("#spinSlot");
+      const stopReelBtn = document.querySelector("#stopReel");
+      const resetMoneyBtn = document.querySelector("#resetMoney");
+      const startTimingBtn = document.querySelector("#startTiming");
+      const upgradeSlotBtn = document.querySelector("#upgradeSlot");
+      const upgradeLevelEl = document.querySelector("#upgradeLevel");
+      const upgradeCostEl = document.querySelector("#upgradeCost");
+      const timingGameEl = document.querySelector("#timingGame");
+      const timingMarkerEl = document.querySelector("#timingMarker");
+      const stopTimingBtn = document.querySelector("#stopTiming");
+      const reelEls = [
+        document.querySelector("#reel1"),
+        document.querySelector("#reel2"),
+        document.querySelector("#reel3")
+      ];
+
+      const spinCost = 300;
+      const timingReward = 1000;
+      const payoutMultiplier = 1.5;
+      const slotSymbols = [
+        { label: "ジャックポット", kind: "jackpot", weight: 2, payout: 5000 },
+        { label: "王冠", kind: "crown", weight: 3, payout: 3500 },
+        { label: "バー", kind: "bar", weight: 4, payout: 2500 },
+        { label: "ダイヤ", kind: "diamond", weight: 6, payout: 1800 },
+        { label: "ベル", kind: "bell", weight: 8, payout: 1200 },
+        { label: "ハート", kind: "heart", weight: 10, payout: 900 },
+        { label: "クローバー", kind: "clover", weight: 12, payout: 750 },
+        { label: "チェリー", kind: "cherry", weight: 12, payout: 600 },
+        { label: "プラム", kind: "plum", weight: 16, payout: 350 },
+        { label: "レモン", kind: "lemon", weight: 20, payout: 250 }
+      ];
+
+      let money = Number(localStorage.getItem("blockBlastMoney") || 10000);
+      let upgradeLevel = Number(localStorage.getItem("slotUpgradeLevel") || 0);
+      let spinning = false;
+      let activeReel = 0;
+      let reelTimers = [];
+      let currentSymbols = [];
+      let stoppedSymbols = [];
+      let timingActive = false;
+      let timingPosition = 0;
+      let timingDirection = 1;
+      let timingFrame = null;
+
+      function yen(value) {
+        return `¥${value.toLocaleString("ja-JP")}`;
+      }
+
+      function setMessage(text, tone = "") {
+        messageEl.textContent = text;
+        messageEl.className = `message ${tone}`;
+      }
+
+      function saveMoney() {
+        localStorage.setItem("blockBlastMoney", String(money));
+      }
+
+      function upgradeCost() {
+        return (upgradeLevel + 1) * 5000;
+      }
+
+      function drawMoney() {
+        moneyEl.textContent = yen(money);
+        spinSlotBtn.disabled = money < spinCost || timingActive || spinning;
+        stopReelBtn.disabled = !spinning || timingActive;
+        resetMoneyBtn.disabled = spinning || timingActive;
+        startTimingBtn.disabled = spinning || timingActive;
+        upgradeSlotBtn.disabled = money < upgradeCost() || spinning || timingActive;
+        if (money < spinCost && !timingActive) {
+          timingGameEl.classList.add("active");
+        }
+      }
+
+      function drawUpgrade() {
+        upgradeLevelEl.textContent = `レベル ${upgradeLevel}`;
+        upgradeCostEl.textContent = `次: ${yen(upgradeCost())}`;
+        slotMachineEl.classList.remove("luxury-1", "luxury-2", "luxury-3");
+        if (upgradeLevel > 0) {
+          slotMachineEl.classList.add(`luxury-${Math.min(upgradeLevel, 3)}`);
+        }
+      }
+
+      function symbolMarkup(symbol) {
+        if (symbol.kind === "bar") {
+          return `<div class="symbol symbol-bar" aria-label="${symbol.label}"><span></span><span></span><span></span></div>`;
+        }
+        if (symbol.kind === "cherry") {
+          return `<div class="symbol symbol-cherry" aria-label="${symbol.label}"><span></span></div>`;
+        }
+        if (symbol.kind === "clover") {
+          return `<div class="symbol symbol-clover" aria-label="${symbol.label}"><span></span></div>`;
+        }
+        return `<div class="symbol symbol-${symbol.kind}" aria-label="${symbol.label}"></div>`;
+      }
+
+      function drawSymbol(reel, symbol) {
+        reel.innerHTML = symbolMarkup(symbol);
+      }
+
+      function randomSymbol() {
+        return slotSymbols[Math.floor(Math.random() * slotSymbols.length)];
+      }
+
+      function weightedSymbol() {
+        const total = slotSymbols.reduce((sum, symbol) => sum + symbol.weight, 0);
+        let pick = Math.random() * total;
+        for (const symbol of slotSymbols) {
+          pick -= symbol.weight;
+          if (pick <= 0) return symbol;
+        }
+        return slotSymbols[slotSymbols.length - 1];
+      }
+
+      function calculatePayout(result) {
+        const kinds = result.map((symbol) => symbol.kind);
+        const first = kinds[0];
+        let basePayout = 0;
+        if (kinds.every((kind) => kind === first)) {
+          basePayout = result[0].payout;
+        } else {
+          const cherryCount = kinds.filter((kind) => kind === "cherry").length;
+          const premiumCount = kinds.filter((kind) => kind === "jackpot" || kind === "crown" || kind === "bar").length;
+
+          if (cherryCount === 2) basePayout = 200;
+          else if (cherryCount === 1) basePayout = 100;
+          else if (premiumCount === 3) basePayout = 500;
+        }
+
+        return Math.round(basePayout * payoutMultiplier);
+      }
+
+      function spinSlot() {
+        if (spinning || timingActive) return;
+        if (money < spinCost) {
+          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+          return;
+        }
+
+        spinning = true;
+        money -= spinCost;
+        saveMoney();
+        activeReel = 0;
+        currentSymbols = [slotSymbols[0], slotSymbols[1], slotSymbols[2]];
+        stoppedSymbols = [null, null, null];
+        drawMoney();
+        setMessage("Enterキー、または止めるボタンで左から順番に止めてください。");
+
+        reelTimers = reelEls.map((reel, index) => {
+          reel.classList.add("spinning");
+          return setInterval(() => {
+            currentSymbols[index] = weightedSymbol();
+            drawSymbol(reel, currentSymbols[index]);
+          }, 80);
+        });
+      }
+
+      function stopCurrentReel() {
+        if (!spinning || timingActive) return;
+        clearInterval(reelTimers[activeReel]);
+        const symbol = currentSymbols[activeReel] || weightedSymbol();
+        stoppedSymbols[activeReel] = symbol;
+        drawSymbol(reelEls[activeReel], symbol);
+        reelEls[activeReel].classList.remove("spinning");
+        activeReel += 1;
+
+        if (activeReel < reelEls.length) {
+          setMessage(`${activeReel + 1}つ目のリールを止めてください。`);
+          drawMoney();
+          return;
+        }
+
+        finishSpin();
+      }
+
+      function finishSpin() {
+        reelTimers.forEach((timer) => clearInterval(timer));
+        reelEls.forEach((reel) => reel.classList.remove("spinning"));
+        const payout = calculatePayout(stoppedSymbols);
+        money += payout;
+        saveMoney();
+        spinning = false;
+
+        if (payout > 0) {
+          setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")} で ${yen(payout)} 獲得しました。`, "good");
+        } else {
+          setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")}。はずれです。`, "bad");
+        }
+
+        if (money < spinCost) {
+          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+        } else {
+          drawMoney();
+        }
+      }
+
+      function startTimingGame(text) {
+        if (spinning || timingActive) return;
+        timingActive = true;
+        timingPosition = 0;
+        timingDirection = 1;
+        timingGameEl.classList.add("active");
+        setMessage(text, "bad");
+        drawMoney();
+        runTimingGame();
+      }
+
+      function runTimingGame() {
+        if (!timingActive) return;
+        timingPosition += timingDirection * 1.8;
+        if (timingPosition >= 100) {
+          timingPosition = 100;
+          timingDirection = -1;
+        } else if (timingPosition <= 0) {
+          timingPosition = 0;
+          timingDirection = 1;
+        }
+        timingMarkerEl.style.left = `${timingPosition}%`;
+        timingFrame = requestAnimationFrame(runTimingGame);
+      }
+
+      function stopTimingGame() {
+        if (!timingActive) return;
+        cancelAnimationFrame(timingFrame);
+        timingActive = false;
+
+        if (timingPosition >= 42 && timingPosition <= 58) {
+          money += timingReward;
+          saveMoney();
+          timingGameEl.classList.remove("active");
+          setMessage(`成功です。${yen(timingReward)}を獲得しました。`, "good");
+        } else {
+          setMessage("失敗です。もう一度、緑色の部分で止めてください。", "bad");
+          if (money < spinCost) {
+            startTimingGame("もう一度挑戦できます。緑色の部分で止めてください。");
+          } else {
+            timingGameEl.classList.remove("active");
+          }
+        }
+
+        drawMoney();
+      }
+
+      function resetMoney() {
+        if (spinning || timingActive) return;
+        money = 10000;
+        saveMoney();
+        timingGameEl.classList.remove("active");
+        setMessage("所持金を¥10,000に戻しました。", "good");
+        drawMoney();
+      }
+
+      function upgradeSlot() {
+        if (spinning || timingActive) return;
+        const cost = upgradeCost();
+        if (money < cost) {
+          setMessage(`アップグレードには${yen(cost)}必要です。`, "bad");
+          return;
+        }
+
+        money -= cost;
+        upgradeLevel += 1;
+        saveMoney();
+        localStorage.setItem("slotUpgradeLevel", String(upgradeLevel));
+        drawUpgrade();
+        drawMoney();
+        setMessage(`スロットをレベル${upgradeLevel}にアップグレードしました。`, "good");
+      }
+
+      spinSlotBtn.addEventListener("click", spinSlot);
+      stopReelBtn.addEventListener("click", stopCurrentReel);
+      resetMoneyBtn.addEventListener("click", resetMoney);
+      upgradeSlotBtn.addEventListener("click", upgradeSlot);
+      startTimingBtn.addEventListener("click", () => {
+        startTimingGame("緑色の部分で止めると¥1,000もらえます。");
+      });
+      stopTimingBtn.addEventListener("click", stopTimingGame);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && spinning) {
+          event.preventDefault();
+          stopCurrentReel();
+        } else if ((event.key === "Enter" || event.key === " ") && timingActive) {
+          event.preventDefault();
+          stopTimingGame();
+        }
+      });
+
+      reelEls.forEach((reel, index) => {
+        drawSymbol(reel, slotSymbols[index]);
+      });
+      drawUpgrade();
+      drawMoney();
+      if (money < spinCost) {
+        startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+      }
+    </script>
+  </body>
+</html>
