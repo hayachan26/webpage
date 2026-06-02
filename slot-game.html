@@ -86,6 +86,42 @@
         line-height: 1;
       }
 
+      .status-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .status-box {
+        padding: 12px;
+        background: #fbfdff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .status-box span {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .status-box strong {
+        display: block;
+        margin-top: 4px;
+        font-size: 1.35rem;
+        line-height: 1;
+      }
+
+      .status-box.fever-on {
+        border-color: #e11d48;
+        background: #fff1f2;
+      }
+
+      .status-box.fever-on strong {
+        color: #be123c;
+      }
+
       .slot,
       .timing,
       .upgrade,
@@ -96,24 +132,85 @@
         border-radius: 8px;
       }
 
+      .slot {
+        position: relative;
+        overflow: hidden;
+        padding-bottom: 64px;
+      }
+
       .slot.luxury-1 {
-        border-color: #f59e0b;
-        background: linear-gradient(180deg, #fff7ed, #ffffff);
+        border-color: #64748b;
+        background:
+          linear-gradient(135deg, rgba(148, 163, 184, 0.22), transparent 34%),
+          linear-gradient(180deg, #f8fafc, #ffffff);
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
       }
 
       .slot.luxury-2 {
-        border-color: #eab308;
-        background: linear-gradient(135deg, #fff7ed, #fef3c7 48%, #ffffff);
-        box-shadow: 0 14px 34px rgba(202, 138, 4, 0.2);
+        border-color: #06b6d4;
+        background:
+          linear-gradient(135deg, rgba(6, 182, 212, 0.16), transparent 36%),
+          linear-gradient(315deg, rgba(236, 72, 153, 0.12), transparent 32%),
+          #ffffff;
+        box-shadow:
+          0 18px 42px rgba(8, 145, 178, 0.2),
+          inset 0 0 0 2px rgba(6, 182, 212, 0.12);
       }
 
       .slot.luxury-3 {
-        border-color: #facc15;
+        border-color: #7c3aed;
         background:
-          linear-gradient(135deg, rgba(250, 204, 21, 0.28), transparent 34%),
-          linear-gradient(315deg, rgba(56, 189, 248, 0.18), transparent 30%),
-          #ffffff;
-        box-shadow: 0 18px 46px rgba(202, 138, 4, 0.26);
+          linear-gradient(135deg, rgba(124, 58, 237, 0.2), transparent 32%),
+          linear-gradient(315deg, rgba(14, 165, 233, 0.18), transparent 30%),
+          linear-gradient(180deg, #ffffff, #f8fafc);
+        box-shadow:
+          0 22px 54px rgba(88, 28, 135, 0.24),
+          inset 0 0 0 2px rgba(124, 58, 237, 0.14);
+      }
+
+      .slot.luxury-1::after,
+      .slot.luxury-2::after,
+      .slot.luxury-3::after {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        pointer-events: none;
+        border-radius: 8px;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+      }
+
+      .slot.luxury-2::after {
+        border-color: rgba(6, 182, 212, 0.38);
+        box-shadow: inset 0 0 18px rgba(6, 182, 212, 0.16);
+      }
+
+      .slot.luxury-3::after {
+        border-color: rgba(124, 58, 237, 0.38);
+        box-shadow:
+          inset 0 0 20px rgba(124, 58, 237, 0.16),
+          0 0 18px rgba(14, 165, 233, 0.18);
+      }
+
+      .slot.fever {
+        border-color: #e11d48;
+        box-shadow:
+          0 18px 46px rgba(225, 29, 72, 0.22),
+          0 0 0 4px rgba(225, 29, 72, 0.12);
+      }
+
+      .slot.fever::before {
+        content: "";
+        position: absolute;
+        inset: -40%;
+        pointer-events: none;
+        background:
+          conic-gradient(from 0deg, transparent, rgba(244, 63, 94, 0.22), transparent, rgba(250, 204, 21, 0.24), transparent);
+        animation: feverSweep 1.8s linear infinite;
+      }
+
+      .slot > * {
+        position: relative;
+        z-index: 1;
       }
 
       .panel-title {
@@ -126,6 +223,32 @@
 
       .panel-title strong {
         font-size: 1.1rem;
+      }
+
+      .jackpot-banner {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 12px;
+        padding: 12px 14px;
+        color: #111827;
+        background:
+          linear-gradient(135deg, #fef3c7, #fde68a 48%, #ffffff);
+        border: 2px solid #facc15;
+        border-radius: 8px;
+      }
+
+      .jackpot-banner span {
+        display: block;
+        color: #92400e;
+        font-size: 0.78rem;
+        font-weight: 900;
+      }
+
+      .jackpot-banner strong {
+        font-size: clamp(1.5rem, 5vw, 2.25rem);
+        line-height: 1;
       }
 
       .reels {
@@ -155,19 +278,51 @@
       }
 
       .slot.luxury-1 .reel {
-        border-color: #fbbf24;
+        border-color: #64748b;
+        background:
+          linear-gradient(180deg, #ffffff, #f1f5f9);
+        box-shadow: inset 0 -8px 0 rgba(15, 23, 42, 0.06);
       }
 
       .slot.luxury-2 .reel {
-        border-color: #eab308;
-        background: #fffbeb;
+        border-color: #06b6d4;
+        background:
+          linear-gradient(180deg, #ffffff, #ecfeff);
+        box-shadow:
+          inset 0 -9px 0 rgba(8, 145, 178, 0.08),
+          0 0 14px rgba(6, 182, 212, 0.18);
       }
 
       .slot.luxury-3 .reel {
-        border-color: #facc15;
+        border-color: #7c3aed;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(254, 243, 199, 0.95));
-        box-shadow: inset 0 0 0 2px rgba(250, 204, 21, 0.26);
+          linear-gradient(180deg, #ffffff, #f5f3ff);
+        box-shadow:
+          inset 0 -10px 0 rgba(88, 28, 135, 0.08),
+          inset 0 0 0 2px rgba(124, 58, 237, 0.16),
+          0 0 18px rgba(124, 58, 237, 0.2);
+      }
+
+      .slot.luxury-2 .jackpot-banner {
+        border-color: #06b6d4;
+        background:
+          linear-gradient(135deg, #ecfeff, #ffffff 48%, #fdf2f8);
+      }
+
+      .slot.luxury-3 .jackpot-banner {
+        border-color: #7c3aed;
+        background:
+          linear-gradient(135deg, #f5f3ff, #ffffff 46%, #e0f2fe);
+      }
+
+      .slot.luxury-2 .gogo-chance {
+        border-color: #06b6d4;
+      }
+
+      .slot.luxury-3 .gogo-chance {
+        color: #312e81;
+        border-color: #7c3aed;
+        background: #ede9fe;
       }
 
       .symbol {
@@ -180,6 +335,21 @@
         background: #facc15;
         clip-path: polygon(50% 0, 62% 34%, 98% 34%, 68% 55%, 80% 92%, 50% 70%, 20% 92%, 32% 55%, 2% 34%, 38% 34%);
         filter: drop-shadow(0 5px 0 rgba(0, 0, 0, 0.16));
+      }
+
+      .symbol-jackpot-chance {
+        display: grid;
+        place-items: center;
+        width: 66px;
+        height: 54px;
+        color: #7f1d1d;
+        background:
+          linear-gradient(135deg, #fff7ed, #facc15 54%, #fb7185);
+        border: 4px solid #b91c1c;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 1000;
+        box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.14);
       }
 
       .symbol-bar {
@@ -380,6 +550,48 @@
         gap: 10px;
       }
 
+      .gogo-chance {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        z-index: 2;
+        min-width: 154px;
+        padding: 10px 14px;
+        color: #475569;
+        background: #e2e8f0;
+        border: 2px solid #cbd5e1;
+        border-radius: 999px;
+        font-weight: 1000;
+        text-align: center;
+      }
+
+      .gogo-chance.on {
+        color: #ffffff;
+        background: #e11d48;
+        border-color: #fecdd3;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+        box-shadow:
+          0 0 18px rgba(225, 29, 72, 0.8),
+          0 0 34px rgba(250, 204, 21, 0.54);
+        animation: gogoPulse 0.72s ease-in-out infinite alternate;
+      }
+
+      @keyframes gogoPulse {
+        from {
+          transform: scale(1);
+        }
+
+        to {
+          transform: scale(1.06);
+        }
+      }
+
+      @keyframes feverSweep {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       .upgrade {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -453,33 +665,36 @@
         display: block;
       }
 
-      .timing-track {
-        position: relative;
-        height: 40px;
-        margin: 10px 0 12px;
-        overflow: hidden;
-        background: #e2e8f0;
-        border: 1px solid #cbd5e1;
+      .challenge-cards {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .challenge-card {
+        display: grid;
+        place-items: center;
+        min-height: 92px;
+        color: #ffffff;
+        background: #111827;
+        border: 3px solid #334155;
         border-radius: 8px;
+        font-size: 1.8rem;
+        font-weight: 1000;
+        cursor: pointer;
       }
 
-      .timing-green {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 42%;
-        width: 16%;
-        background: rgba(22, 163, 74, 0.82);
+      .challenge-card.win {
+        color: #14532d;
+        background: #bbf7d0;
+        border-color: #16a34a;
       }
 
-      .timing-marker {
-        position: absolute;
-        top: -2px;
-        bottom: -2px;
-        left: 0;
-        width: 5px;
-        background: var(--dark);
-        border-radius: 4px;
+      .challenge-card.lose {
+        color: #7f1d1d;
+        background: #fecaca;
+        border-color: #dc2626;
       }
 
       @media (max-width: 560px) {
@@ -501,8 +716,30 @@
           grid-template-columns: 1fr;
         }
 
+        .slot {
+          padding-bottom: 74px;
+        }
+
+        .jackpot-banner {
+          grid-template-columns: 1fr;
+        }
+
+        .gogo-chance {
+          right: 12px;
+          left: 12px;
+          min-width: 0;
+        }
+
         .upgrade {
           grid-template-columns: 1fr;
+        }
+
+        .status-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .challenge-cards {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .symbol {
@@ -521,10 +758,21 @@
             <span>MONEY</span>
             <strong id="money">¥10,000</strong>
           </div>
-          <span>1回 ¥300</span>
+          <span>1回 ¥100</span>
+        </div>
+
+        <div class="status-grid">
+          <div class="status-box" id="feverBox">
+            <span>FEVER TIME</span>
+            <strong id="feverStatus">なし</strong>
+          </div>
         </div>
 
         <div class="slot" id="slotMachine">
+          <div class="jackpot-banner">
+            <span>JACKPOT</span>
+            <strong id="jackpotAmount">¥10,000</strong>
+          </div>
           <div class="panel-title">
             <strong>3リールスロット</strong>
             <span>ゲーム内マネー</span>
@@ -540,6 +788,7 @@
             <button class="secondary" id="resetMoney">最初から</button>
             <button class="secondary" id="startTiming">千円チャレンジ</button>
           </div>
+          <div class="gogo-chance" id="gogoChance">GOGOチャンス</div>
         </div>
 
         <div class="upgrade">
@@ -553,14 +802,18 @@
 
         <div class="timing" id="timingGame">
           <div class="panel-title">
-            <strong>救済タイミング</strong>
-            <span>成功で ¥1,000</span>
+            <strong>カードチャレンジ</strong>
+            <span>当たりで ¥1,000</span>
           </div>
-          <div class="timing-track">
-            <div class="timing-green"></div>
-            <div class="timing-marker" id="timingMarker"></div>
+          <div class="challenge-cards" id="challengeCards">
+            <button class="challenge-card" type="button" data-card="0">?</button>
+            <button class="challenge-card" type="button" data-card="1">?</button>
+            <button class="challenge-card" type="button" data-card="2">?</button>
+            <button class="challenge-card" type="button" data-card="3">?</button>
+            <button class="challenge-card" type="button" data-card="4">?</button>
+            <button class="challenge-card" type="button" data-card="5">?</button>
+            <button class="challenge-card" type="button" data-card="6">?</button>
           </div>
-          <button id="stopTiming">ストップ</button>
         </div>
 
         <div class="payout">
@@ -569,15 +822,17 @@
             <span>役一覧</span>
           </div>
           <ul>
-            <li>星が3つ: ¥7,500</li>
-            <li>王冠が3つ: ¥5,250</li>
-            <li>黒バーが3つ: ¥3,750</li>
-            <li>ダイヤが3つ: ¥2,700</li>
-            <li>ベルが3つ: ¥1,800</li>
-            <li>ハートが3つ: ¥1,350 / クローバーが3つ: ¥1,125</li>
-            <li>チェリーが3つ: ¥900</li>
-            <li>チェリー2つ: ¥300 / チェリー1つ: ¥150</li>
-            <li>星・王冠・黒バーだけで3つ: ¥750</li>
+            <li>星が3つ: ¥5,000</li>
+            <li>王冠が3つ: ¥3,500</li>
+            <li>黒バーが3つ: ¥2,500</li>
+            <li>ダイヤが3つ: ¥1,800</li>
+            <li>ベルが3つ: ¥1,200</li>
+            <li>ハートが3つ: ¥900 / クローバーが3つ: ¥750</li>
+            <li>チェリーが3つ: ¥600</li>
+            <li>チェリー2つ: ¥200 / チェリー1つ: ¥100</li>
+            <li>星・王冠・黒バーだけで3つ: ¥500</li>
+            <li>星が3つ: JACKPOTも追加獲得</li>
+            <li>JACKPOTチャンスが3つ: JACKPOTの半分を獲得</li>
           </ul>
         </div>
 
@@ -589,6 +844,10 @@
       const moneyEl = document.querySelector("#money");
       const messageEl = document.querySelector("#message");
       const slotMachineEl = document.querySelector("#slotMachine");
+      const feverBoxEl = document.querySelector("#feverBox");
+      const feverStatusEl = document.querySelector("#feverStatus");
+      const jackpotAmountEl = document.querySelector("#jackpotAmount");
+      const gogoChanceEl = document.querySelector("#gogoChance");
       const spinSlotBtn = document.querySelector("#spinSlot");
       const stopReelBtn = document.querySelector("#stopReel");
       const resetMoneyBtn = document.querySelector("#resetMoney");
@@ -597,19 +856,24 @@
       const upgradeLevelEl = document.querySelector("#upgradeLevel");
       const upgradeCostEl = document.querySelector("#upgradeCost");
       const timingGameEl = document.querySelector("#timingGame");
-      const timingMarkerEl = document.querySelector("#timingMarker");
-      const stopTimingBtn = document.querySelector("#stopTiming");
+      const challengeCardEls = Array.from(document.querySelectorAll(".challenge-card"));
       const reelEls = [
         document.querySelector("#reel1"),
         document.querySelector("#reel2"),
         document.querySelector("#reel3")
       ];
 
-      const spinCost = 300;
+      const spinCost = 100;
       const timingReward = 1000;
-      const payoutMultiplier = 1.5;
+      const payoutMultiplier = 1;
+      const jackpotStart = 10000;
+      const jackpotAddPerSpin = 50;
+      const feverChance = 0.06;
+      const feverDuration = 5;
+      const feverMatchChance = 0.62;
       const slotSymbols = [
         { label: "ジャックポット", kind: "jackpot", weight: 2, payout: 5000 },
+        { label: "JACKPOTチャンス", kind: "jackpot-chance", weight: 3, payout: 0 },
         { label: "王冠", kind: "crown", weight: 3, payout: 3500 },
         { label: "バー", kind: "bar", weight: 4, payout: 2500 },
         { label: "ダイヤ", kind: "diamond", weight: 6, payout: 1800 },
@@ -621,17 +885,24 @@
         { label: "レモン", kind: "lemon", weight: 20, payout: 250 }
       ];
 
-      let money = Number(localStorage.getItem("blockBlastMoney") || 10000);
+      if (localStorage.getItem("slotMoneySetTo4300") !== "1") {
+        localStorage.setItem("blockBlastMoney", "4300");
+        localStorage.setItem("slotMoneySetTo4300", "1");
+      }
+
+      let money = Number(localStorage.getItem("blockBlastMoney") || 4300);
       let upgradeLevel = Number(localStorage.getItem("slotUpgradeLevel") || 0);
+      let jackpot = Number(localStorage.getItem("slotJackpot") || jackpotStart);
+      let feverSpins = Number(localStorage.getItem("slotFeverSpins") || 0);
+      let feverActiveThisSpin = false;
       let spinning = false;
       let activeReel = 0;
       let reelTimers = [];
       let currentSymbols = [];
       let stoppedSymbols = [];
       let timingActive = false;
-      let timingPosition = 0;
-      let timingDirection = 1;
-      let timingFrame = null;
+      let challengeWinningCard = 0;
+      let challengePicked = false;
 
       function yen(value) {
         return `¥${value.toLocaleString("ja-JP")}`;
@@ -644,6 +915,11 @@
 
       function saveMoney() {
         localStorage.setItem("blockBlastMoney", String(money));
+      }
+
+      function saveSpecials() {
+        localStorage.setItem("slotJackpot", String(jackpot));
+        localStorage.setItem("slotFeverSpins", String(feverSpins));
       }
 
       function upgradeCost() {
@@ -662,8 +938,18 @@
         }
       }
 
+      function drawSpecials() {
+        const feverOn = feverSpins > 0 || feverActiveThisSpin;
+        jackpotAmountEl.textContent = yen(jackpot);
+        feverBoxEl.classList.toggle("fever-on", feverOn);
+        slotMachineEl.classList.toggle("fever", feverOn);
+        gogoChanceEl.classList.toggle("on", feverOn);
+        feverStatusEl.textContent = feverOn ? `残り ${Math.max(feverSpins, 1)}回` : "なし";
+      }
+
       function drawUpgrade() {
-        upgradeLevelEl.textContent = `レベル ${upgradeLevel}`;
+        const names = ["通常", "メタル", "ネオン", "プレミアム"];
+        upgradeLevelEl.textContent = `レベル ${upgradeLevel} ${names[Math.min(upgradeLevel, names.length - 1)]}`;
         upgradeCostEl.textContent = `次: ${yen(upgradeCost())}`;
         slotMachineEl.classList.remove("luxury-1", "luxury-2", "luxury-3");
         if (upgradeLevel > 0) {
@@ -680,6 +966,9 @@
         }
         if (symbol.kind === "clover") {
           return `<div class="symbol symbol-clover" aria-label="${symbol.label}"><span></span></div>`;
+        }
+        if (symbol.kind === "jackpot-chance") {
+          return `<div class="symbol symbol-jackpot-chance" aria-label="${symbol.label}">JP</div>`;
         }
         return `<div class="symbol symbol-${symbol.kind}" aria-label="${symbol.label}"></div>`;
       }
@@ -702,11 +991,21 @@
         return slotSymbols[slotSymbols.length - 1];
       }
 
+      function slotSymbolForReel(index) {
+        const target = stoppedSymbols[0];
+        if ((feverSpins > 0 || feverActiveThisSpin) && index > 0 && target && Math.random() < feverMatchChance) {
+          return target;
+        }
+        return weightedSymbol();
+      }
+
       function calculatePayout(result) {
         const kinds = result.map((symbol) => symbol.kind);
         const first = kinds[0];
         let basePayout = 0;
-        if (kinds.every((kind) => kind === first)) {
+        if (kinds.every((kind) => kind === "jackpot-chance")) {
+          basePayout = Math.floor(jackpot / 2);
+        } else if (kinds.every((kind) => kind === first)) {
           basePayout = result[0].payout;
         } else {
           const cherryCount = kinds.filter((kind) => kind === "cherry").length;
@@ -723,23 +1022,32 @@
       function spinSlot() {
         if (spinning || timingActive) return;
         if (money < spinCost) {
-          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+          startTimingGame("お金が足りません。7枚の中から当たりカードを選んでください。");
           return;
         }
 
         spinning = true;
         money -= spinCost;
+        jackpot += jackpotAddPerSpin;
+        if (feverSpins <= 0 && Math.random() < feverChance) {
+          feverSpins = feverDuration;
+          setMessage("フィーバータイム発生。最初に止めた絵柄がそろいやすくなります。", "good");
+        } else {
+          setMessage("Enterキー、または止めるボタンで左から順番に止めてください。");
+        }
+        feverActiveThisSpin = feverSpins > 0;
         saveMoney();
+        saveSpecials();
         activeReel = 0;
         currentSymbols = [slotSymbols[0], slotSymbols[1], slotSymbols[2]];
         stoppedSymbols = [null, null, null];
         drawMoney();
-        setMessage("Enterキー、または止めるボタンで左から順番に止めてください。");
+        drawSpecials();
 
         reelTimers = reelEls.map((reel, index) => {
           reel.classList.add("spinning");
           return setInterval(() => {
-            currentSymbols[index] = weightedSymbol();
+            currentSymbols[index] = slotSymbolForReel(index);
             drawSymbol(reel, currentSymbols[index]);
           }, 80);
         });
@@ -767,68 +1075,88 @@
         reelTimers.forEach((timer) => clearInterval(timer));
         reelEls.forEach((reel) => reel.classList.remove("spinning"));
         const payout = calculatePayout(stoppedSymbols);
-        money += payout;
+        const jackpotHit = stoppedSymbols.every((symbol) => symbol.kind === "jackpot");
+        const jackpotChanceHit = stoppedSymbols.every((symbol) => symbol.kind === "jackpot-chance");
+        const jackpotBonus = jackpotHit ? jackpot : 0;
+        money += payout + jackpotBonus;
+        if (jackpotHit) {
+          jackpot = jackpotStart;
+        } else if (jackpotChanceHit) {
+          jackpot = Math.max(jackpotStart, jackpot - payout);
+        }
+        if (feverActiveThisSpin) {
+          feverSpins = Math.max(0, feverSpins - 1);
+        }
+        feverActiveThisSpin = false;
         saveMoney();
+        saveSpecials();
         spinning = false;
 
-        if (payout > 0) {
+        if (jackpotHit) {
+          setMessage(`JACKPOT。${stoppedSymbols.map((symbol) => symbol.label).join(" / ")} で ${yen(payout + jackpotBonus)} 獲得しました。`, "good");
+        } else if (jackpotChanceHit) {
+          setMessage(`JACKPOTチャンス。${yen(payout)} 獲得しました。`, "good");
+        } else if (payout > 0) {
           setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")} で ${yen(payout)} 獲得しました。`, "good");
         } else {
           setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")}。はずれです。`, "bad");
         }
 
         if (money < spinCost) {
-          startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+          startTimingGame("お金が足りません。7枚の中から当たりカードを選んでください。");
         } else {
           drawMoney();
+          drawSpecials();
         }
       }
 
       function startTimingGame(text) {
         if (spinning || timingActive) return;
         timingActive = true;
-        timingPosition = 0;
-        timingDirection = 1;
+        challengePicked = false;
+        challengeWinningCard = Math.floor(Math.random() * challengeCardEls.length);
         timingGameEl.classList.add("active");
         setMessage(text, "bad");
         drawMoney();
-        runTimingGame();
+        renderChallengeCards();
       }
 
-      function runTimingGame() {
-        if (!timingActive) return;
-        timingPosition += timingDirection * 1.8;
-        if (timingPosition >= 100) {
-          timingPosition = 100;
-          timingDirection = -1;
-        } else if (timingPosition <= 0) {
-          timingPosition = 0;
-          timingDirection = 1;
-        }
-        timingMarkerEl.style.left = `${timingPosition}%`;
-        timingFrame = requestAnimationFrame(runTimingGame);
+      function renderChallengeCards(pickedIndex = null) {
+        challengeCardEls.forEach((card, index) => {
+          card.disabled = challengePicked;
+          card.classList.remove("win", "lose");
+          card.textContent = "?";
+          if (pickedIndex === null) return;
+          const isWin = index === challengeWinningCard;
+          card.textContent = isWin ? "当" : "外";
+          card.classList.add(isWin ? "win" : "lose");
+        });
       }
 
-      function stopTimingGame() {
-        if (!timingActive) return;
-        cancelAnimationFrame(timingFrame);
-        timingActive = false;
+      function pickChallengeCard(index) {
+        if (!timingActive || challengePicked) return;
+        challengePicked = true;
+        const success = index === challengeWinningCard;
+        renderChallengeCards(index);
 
-        if (timingPosition >= 42 && timingPosition <= 58) {
+        if (success) {
           money += timingReward;
           saveMoney();
-          timingGameEl.classList.remove("active");
           setMessage(`成功です。${yen(timingReward)}を獲得しました。`, "good");
         } else {
-          setMessage("失敗です。もう一度、緑色の部分で止めてください。", "bad");
+          setMessage("はずれです。当たりカードを選べませんでした。", "bad");
+        }
+
+        window.setTimeout(() => {
+          timingActive = false;
           if (money < spinCost) {
-            startTimingGame("もう一度挑戦できます。緑色の部分で止めてください。");
+            timingGameEl.classList.add("active");
+            startTimingGame("お金が足りません。もう一度7枚の中から当たりカードを選んでください。");
           } else {
             timingGameEl.classList.remove("active");
           }
-        }
-
-        drawMoney();
+          drawMoney();
+        }, 900);
       }
 
       function resetMoney() {
@@ -862,17 +1190,19 @@
       resetMoneyBtn.addEventListener("click", resetMoney);
       upgradeSlotBtn.addEventListener("click", upgradeSlot);
       startTimingBtn.addEventListener("click", () => {
-        startTimingGame("緑色の部分で止めると¥1,000もらえます。");
+        startTimingGame("7枚の中から当たりカードを選んでください。");
       });
-      stopTimingBtn.addEventListener("click", stopTimingGame);
+      challengeCardEls.forEach((card) => {
+        card.addEventListener("click", () => pickChallengeCard(Number(card.dataset.card)));
+      });
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && spinning) {
           event.preventDefault();
           stopCurrentReel();
-        } else if ((event.key === "Enter" || event.key === " ") && timingActive) {
+        } else if (timingActive && /^[1-7]$/.test(event.key)) {
           event.preventDefault();
-          stopTimingGame();
+          pickChallengeCard(Number(event.key) - 1);
         }
       });
 
@@ -881,8 +1211,9 @@
       });
       drawUpgrade();
       drawMoney();
+      drawSpecials();
       if (money < spinCost) {
-        startTimingGame("お金が足りません。緑色の部分で止めると¥1,000もらえます。");
+        startTimingGame("お金が足りません。7枚の中から当たりカードを選んでください。");
       }
     </script>
   </body>
