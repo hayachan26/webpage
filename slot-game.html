@@ -88,7 +88,7 @@
 
       .status-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
       }
 
@@ -125,6 +125,7 @@
       .slot,
       .timing,
       .upgrade,
+      .shop,
       .payout {
         padding: 14px;
         background: #fbfdff;
@@ -702,6 +703,37 @@
         min-width: 150px;
       }
 
+      .shop {
+        display: grid;
+        gap: 12px;
+      }
+
+      .shop-items {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .shop-item {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 8px;
+        padding: 12px;
+        background: #ffffff;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .shop-item strong {
+        font-size: 1rem;
+      }
+
+      .shop-item span {
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.55;
+      }
+
       button {
         min-height: 48px;
         border: 0;
@@ -820,6 +852,10 @@
           grid-template-columns: 1fr;
         }
 
+        .shop-items {
+          grid-template-columns: 1fr;
+        }
+
         .status-grid {
           grid-template-columns: 1fr;
         }
@@ -852,6 +888,14 @@
             <span>FEVER TIME</span>
             <strong id="feverStatus">なし</strong>
           </div>
+          <div class="status-box">
+            <span>INSURANCE</span>
+            <strong id="insuranceStatus">0枚</strong>
+          </div>
+          <div class="status-box">
+            <span>LUXURY BONUS</span>
+            <strong id="luxuryStatus">なし</strong>
+          </div>
         </div>
 
         <div class="slot" id="slotMachine">
@@ -869,10 +913,10 @@
             <div class="reel" id="reel3"></div>
           </div>
           <div class="buttons">
-            <button id="spinSlot">回す</button>
-            <button id="stopReel">止める</button>
+            <button id="spinSlot">開始 Space</button>
+            <button id="stopReel">停止 Enter</button>
             <button class="secondary" id="resetMoney">最初から</button>
-            <button class="secondary" id="startTiming">千円チャレンジ</button>
+            <button class="secondary" id="startTiming">千円チャレンジ Shift</button>
           </div>
           <div class="gogo-chance" id="gogoChance">GOGOチャンス</div>
         </div>
@@ -882,9 +926,33 @@
             <span>UPGRADE</span>
             <strong id="upgradeLevel">レベル 0</strong>
             <span id="upgradeCost">次: ¥5,000</span>
-            <small id="upgradeBenefit">JACKPOT加算 +¥50 / フィーバー 6%</small>
+            <small id="upgradeBenefit">JACKPOT加算 +¥50 / フィーバー 6% / ラグジュアリー返金 なし</small>
           </div>
           <button id="upgradeSlot">アップグレード</button>
+        </div>
+
+        <div class="shop">
+          <div class="panel-title">
+            <strong>アイテムショップ</strong>
+            <span>貯めたお金の使い道</span>
+          </div>
+          <div class="shop-items">
+            <div class="shop-item">
+              <strong>フィーバー券</strong>
+              <span>ランダム回数ぶん、絵柄がそろいやすくなります。</span>
+              <button id="buyFever">¥3,000で買う</button>
+            </div>
+            <div class="shop-item">
+              <strong>JACKPOT積立</strong>
+              <span>JACKPOTに¥2,500を追加します。</span>
+              <button id="boostJackpot">¥1,000で積む</button>
+            </div>
+            <div class="shop-item">
+              <strong>はずれ保険</strong>
+              <span>はずれた時に1枚使って¥500戻ります。</span>
+              <button id="buyInsurance">¥800で買う</button>
+            </div>
+          </div>
         </div>
 
         <div class="timing" id="timingGame">
@@ -923,7 +991,7 @@
           </ul>
         </div>
 
-        <div class="message" id="message">所持金でスロットを回せます。</div>
+        <div class="message" id="message">Spaceキーで開始、Enterキーで停止、Shiftキーで千円チャレンジを始められます。</div>
       </section>
     </main>
 
@@ -933,6 +1001,8 @@
       const slotMachineEl = document.querySelector("#slotMachine");
       const feverBoxEl = document.querySelector("#feverBox");
       const feverStatusEl = document.querySelector("#feverStatus");
+      const insuranceStatusEl = document.querySelector("#insuranceStatus");
+      const luxuryStatusEl = document.querySelector("#luxuryStatus");
       const jackpotAmountEl = document.querySelector("#jackpotAmount");
       const gogoChanceEl = document.querySelector("#gogoChance");
       const spinSlotBtn = document.querySelector("#spinSlot");
@@ -940,6 +1010,9 @@
       const resetMoneyBtn = document.querySelector("#resetMoney");
       const startTimingBtn = document.querySelector("#startTiming");
       const upgradeSlotBtn = document.querySelector("#upgradeSlot");
+      const buyFeverBtn = document.querySelector("#buyFever");
+      const boostJackpotBtn = document.querySelector("#boostJackpot");
+      const buyInsuranceBtn = document.querySelector("#buyInsurance");
       const upgradeLevelEl = document.querySelector("#upgradeLevel");
       const upgradeCostEl = document.querySelector("#upgradeCost");
       const upgradeBenefitEl = document.querySelector("#upgradeBenefit");
@@ -955,7 +1028,12 @@
       const timingReward = 1000;
       const payoutMultiplier = 1;
       const jackpotStart = 10000;
-      const feverDuration = 5;
+      const feverTicketCost = 3000;
+      const jackpotBoostCost = 1000;
+      const jackpotBoostAmount = 2500;
+      const insuranceCost = 800;
+      const insuranceRefund = 500;
+      const maxInsuranceTickets = 5;
       const slotSymbols = [
         { label: "ジャックポット", kind: "jackpot", weight: 2, payout: 5000 },
         { label: "JACKPOTチャンス", kind: "jackpot-chance", weight: 3, payout: 0 },
@@ -979,6 +1057,7 @@
       let upgradeLevel = Number(localStorage.getItem("slotUpgradeLevel") || 0);
       let jackpot = Number(localStorage.getItem("slotJackpot") || jackpotStart);
       let feverSpins = Number(localStorage.getItem("slotFeverSpins") || 0);
+      let insuranceTickets = Number(localStorage.getItem("slotInsuranceTickets") || 0);
       let feverActiveThisSpin = false;
       let spinning = false;
       let activeReel = 0;
@@ -1005,6 +1084,7 @@
       function saveSpecials() {
         localStorage.setItem("slotJackpot", String(jackpot));
         localStorage.setItem("slotFeverSpins", String(feverSpins));
+        localStorage.setItem("slotInsuranceTickets", String(insuranceTickets));
       }
 
       function upgradeCost() {
@@ -1023,6 +1103,29 @@
         return Math.min(0.84, 0.62 + Math.min(upgradeLevel, 6) * 0.035);
       }
 
+      function luxuryRebateChance() {
+        if (upgradeLevel <= 0) return 0;
+        return Math.min(0.18, 0.025 + upgradeLevel * 0.018);
+      }
+
+      function luxuryRebateAmount() {
+        if (upgradeLevel <= 0) return 0;
+        return Math.min(300, 75 + upgradeLevel * 25);
+      }
+
+      function randomFeverSpins(source = "normal") {
+        const baseContinueChance = source === "ticket" ? 0.62 : 0.52;
+        const continueChance = Math.min(0.74, baseContinueChance + Math.min(upgradeLevel, 8) * 0.015);
+        let spins = 1;
+        while (Math.random() < continueChance && spins < 18) {
+          spins += 1;
+        }
+        if (Math.random() < Math.min(0.12, 0.04 + upgradeLevel * 0.006)) {
+          spins += 1 + Math.floor(Math.random() * 3);
+        }
+        return spins;
+      }
+
       function drawMoney() {
         moneyEl.textContent = yen(money);
         spinSlotBtn.disabled = money < spinCost || timingActive || spinning;
@@ -1030,6 +1133,9 @@
         resetMoneyBtn.disabled = spinning || timingActive;
         startTimingBtn.disabled = spinning || timingActive;
         upgradeSlotBtn.disabled = money < upgradeCost() || spinning || timingActive;
+        buyFeverBtn.disabled = money < feverTicketCost || spinning || timingActive;
+        boostJackpotBtn.disabled = money < jackpotBoostCost || spinning || timingActive;
+        buyInsuranceBtn.disabled = money < insuranceCost || insuranceTickets >= maxInsuranceTickets || spinning || timingActive;
         if (money < spinCost && !timingActive) {
           timingGameEl.classList.add("active");
         }
@@ -1041,18 +1147,23 @@
         feverBoxEl.classList.toggle("fever-on", feverOn);
         slotMachineEl.classList.toggle("fever", feverOn);
         gogoChanceEl.classList.toggle("on", feverOn);
-        feverStatusEl.textContent = feverOn ? `残り ${Math.max(feverSpins, 1)}回` : "なし";
+        feverStatusEl.textContent = feverOn ? "発生中" : "なし";
+        insuranceStatusEl.textContent = `${insuranceTickets}枚`;
+        luxuryStatusEl.textContent = upgradeLevel > 0
+          ? `返金 ${Math.round(luxuryRebateChance() * 100)}%`
+          : "なし";
       }
 
       function drawUpgrade() {
         const names = ["通常", "メタル", "ネオン", "プレミアム", "ブラック", "レジェンド"];
         upgradeLevelEl.textContent = `レベル ${upgradeLevel} ${names[Math.min(upgradeLevel, names.length - 1)]}`;
         upgradeCostEl.textContent = `次: ${yen(upgradeCost())}`;
-        upgradeBenefitEl.textContent = `JACKPOT加算 +${yen(jackpotAddPerSpin())} / フィーバー ${Math.round(feverChance() * 100)}% / 揃いやすさ ${Math.round(feverMatchChance() * 100)}%`;
+        upgradeBenefitEl.textContent = `JACKPOT加算 +${yen(jackpotAddPerSpin())} / フィーバー ${Math.round(feverChance() * 100)}% / 揃いやすさ ${Math.round(feverMatchChance() * 100)}% / はずれ返金 ${Math.round(luxuryRebateChance() * 100)}%`;
         slotMachineEl.classList.remove("luxury-1", "luxury-2", "luxury-3", "luxury-4", "luxury-5");
         if (upgradeLevel > 0) {
           slotMachineEl.classList.add(`luxury-${Math.min(upgradeLevel, 5)}`);
         }
+        drawSpecials();
       }
 
       function symbolMarkup(symbol) {
@@ -1128,10 +1239,10 @@
         money -= spinCost;
         jackpot += jackpotAddPerSpin();
         if (feverSpins <= 0 && Math.random() < feverChance()) {
-          feverSpins = feverDuration;
-          setMessage("フィーバータイム発生。最初に止めた絵柄がそろいやすくなります。", "good");
+          feverSpins = randomFeverSpins("normal");
+          setMessage("フィーバータイム発生。しばらく絵柄がそろいやすくなります。", "good");
         } else {
-          setMessage("Spaceキー、または止めるボタンで左から順番に止めてください。");
+          setMessage("Enterキー、または停止ボタンで左から順番に止めてください。");
         }
         feverActiveThisSpin = feverSpins > 0;
         saveMoney();
@@ -1176,7 +1287,15 @@
         const jackpotHit = stoppedSymbols.every((symbol) => symbol.kind === "jackpot");
         const jackpotChanceHit = stoppedSymbols.every((symbol) => symbol.kind === "jackpot-chance");
         const jackpotBonus = jackpotHit ? jackpot : 0;
-        money += payout + jackpotBonus;
+        let insurancePay = 0;
+        let luxuryPay = 0;
+        if (payout === 0 && jackpotBonus === 0 && insuranceTickets > 0) {
+          insuranceTickets -= 1;
+          insurancePay = insuranceRefund;
+        } else if (payout === 0 && jackpotBonus === 0 && Math.random() < luxuryRebateChance()) {
+          luxuryPay = luxuryRebateAmount();
+        }
+        money += payout + jackpotBonus + insurancePay + luxuryPay;
         if (jackpotHit) {
           jackpot = jackpotStart;
         } else if (jackpotChanceHit) {
@@ -1196,6 +1315,10 @@
           setMessage(`JACKPOTチャンス。${yen(payout)} 獲得しました。`, "good");
         } else if (payout > 0) {
           setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")} で ${yen(payout)} 獲得しました。`, "good");
+        } else if (insurancePay > 0) {
+          setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")}。はずれ保険で${yen(insurancePay)}戻りました。`, "good");
+        } else if (luxuryPay > 0) {
+          setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")}。ラグジュアリー返金で${yen(luxuryPay)}戻りました。`, "good");
         } else {
           setMessage(`${stoppedSymbols.map((symbol) => symbol.label).join(" / ")}。はずれです。`, "bad");
         }
@@ -1266,6 +1389,59 @@
         drawMoney();
       }
 
+      function buyFeverTicket() {
+        if (spinning || timingActive) return;
+        if (money < feverTicketCost) {
+          setMessage(`フィーバー券には${yen(feverTicketCost)}必要です。`, "bad");
+          return;
+        }
+
+        money -= feverTicketCost;
+        const gainedSpins = randomFeverSpins("ticket");
+        feverSpins += gainedSpins;
+        saveMoney();
+        saveSpecials();
+        drawMoney();
+        drawSpecials();
+        setMessage("フィーバー券を使いました。しばらく絵柄がそろいやすくなります。", "good");
+      }
+
+      function boostJackpot() {
+        if (spinning || timingActive) return;
+        if (money < jackpotBoostCost) {
+          setMessage(`JACKPOT積立には${yen(jackpotBoostCost)}必要です。`, "bad");
+          return;
+        }
+
+        money -= jackpotBoostCost;
+        jackpot += jackpotBoostAmount;
+        saveMoney();
+        saveSpecials();
+        drawMoney();
+        drawSpecials();
+        setMessage(`JACKPOTに${yen(jackpotBoostAmount)}積み立てました。`, "good");
+      }
+
+      function buyInsurance() {
+        if (spinning || timingActive) return;
+        if (insuranceTickets >= maxInsuranceTickets) {
+          setMessage(`はずれ保険は${maxInsuranceTickets}枚まで持てます。`, "bad");
+          return;
+        }
+        if (money < insuranceCost) {
+          setMessage(`はずれ保険には${yen(insuranceCost)}必要です。`, "bad");
+          return;
+        }
+
+        money -= insuranceCost;
+        insuranceTickets += 1;
+        saveMoney();
+        saveSpecials();
+        drawMoney();
+        drawSpecials();
+        setMessage(`はずれ保険を買いました。現在${insuranceTickets}枚です。`, "good");
+      }
+
       function upgradeSlot() {
         if (spinning || timingActive) return;
         const cost = upgradeCost();
@@ -1287,6 +1463,9 @@
       stopReelBtn.addEventListener("click", stopCurrentReel);
       resetMoneyBtn.addEventListener("click", resetMoney);
       upgradeSlotBtn.addEventListener("click", upgradeSlot);
+      buyFeverBtn.addEventListener("click", buyFeverTicket);
+      boostJackpotBtn.addEventListener("click", boostJackpot);
+      buyInsuranceBtn.addEventListener("click", buyInsurance);
       startTimingBtn.addEventListener("click", () => {
         startTimingGame("7枚の中から当たりカードを選んでください。");
       });
@@ -1295,12 +1474,15 @@
       });
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !spinning && !timingActive) {
+        if (event.code === "Space" && !spinning && !timingActive) {
           event.preventDefault();
           spinSlot();
-        } else if (event.key === " " && spinning) {
+        } else if (event.code === "Enter" && spinning) {
           event.preventDefault();
           stopCurrentReel();
+        } else if ((event.code === "ShiftLeft" || event.code === "ShiftRight") && !spinning && !timingActive) {
+          event.preventDefault();
+          startTimingGame("7枚の中から当たりカードを選んでください。");
         } else if (timingActive && /^[1-7]$/.test(event.key)) {
           event.preventDefault();
           pickChallengeCard(Number(event.key) - 1);
